@@ -1,5 +1,7 @@
 import {getRepository} from "typeorm";
 import {NextFunction, Request, Response} from "express";
+import * as redis from 'redis'
+import * as bluebird from 'bluebird'
 import {createClient} from 'redis'
 import {User} from "../entity/User";
 import account from '../bean'
@@ -10,6 +12,8 @@ import Util from '../util'
 const Core = require('@alicloud/pop-core');
 const crypto = require('crypto');
 const token = require('../util/token');
+
+bluebird.promisifyAll(redis)
 
 @Controller('/api/users')
 export class UserController {
@@ -42,13 +46,12 @@ export class UserController {
 		return Util.response_manage(
 			this.client.request('SendSms', params, request_option),
 			(result: any) => {
-				this.redisClient.set(`${RedisHashKey.SMS}:${request.query.phone}`, 
-					JSON.stringify({
+				this.redisClient.setAsync(`${RedisHashKey.SMS}:${request.query.phone}`, JSON.stringify({
 						code: code,
 						expired: new Date().getTime() + EXPIRED_TIME,
 						checked: false
-					}),
-				'EX', 100) // 100 seconds expired
+					}),'EX', 100).then((ret: any) => {
+				})
 				return result
 			}
 		)
@@ -187,7 +190,7 @@ export class UserController {
 		const password = crypto.createHash('sha1').update(request.body.password).digest('hex')
 
 		const phone = request.body.phone
-		this.redisClient.get(`${RedisHashKey.SMS}:${phone}`, (err: any, ret: any) => {
+		this.redisClient.getAsync(`${RedisHashKey.SMS}:${phone}`).then((ret: any) => {
 			if (ret === null) {
 				console.log('empty catch')
 			} else {

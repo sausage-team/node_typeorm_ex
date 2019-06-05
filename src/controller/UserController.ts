@@ -4,6 +4,7 @@ import {createClient} from 'redis'
 import {User} from "../entity/User";
 import account from '../bean'
 import { RedisHashKey } from '../bean'
+import { Controller, Get, Post, Delete} from '../decorators/decorator'
 import Util from '../util'
 
 const Core = require('@alicloud/pop-core');
@@ -12,6 +13,7 @@ const token = require('../util/token');
 
 const select_code_count = {}
 
+@Controller('/api/users')
 export class UserController {
 	private redisClient: any = createClient()
 
@@ -24,6 +26,7 @@ export class UserController {
 
 	private userRepository = getRepository(User);
 
+	@Get('/send_msg')
 	public async send_msg(request: Request, response: Response, next: NextFunction) {
 
 		const code = Math.random().toString().slice(-6)
@@ -53,6 +56,7 @@ export class UserController {
 		)
 	}
 
+	@Get('/check_code')
 	public async check_code(request: Request, response: Response, next: NextFunction) {
 		const params: any = {
 			PhoneNumber: request.query.phone,
@@ -117,10 +121,12 @@ export class UserController {
 		})
 	}
 
+	@Get('/')
 	public async all(request: Request, response: Response, next: NextFunction) {
 		return this.userRepository.find();
 	}
 
+	@Post('/sign')
 	public async login(request: Request, response: Response, next: NextFunction) {
 		const username = request.body.username
 		const password = crypto.createHash('sha1').update(request.body.password).digest('hex')
@@ -170,6 +176,7 @@ export class UserController {
 		return this.userRepository.findOne(request.params.id);
 	}
 
+	@Post('/')
 	public async save(request: Request, response: Response, next: NextFunction) {
 		const password = crypto.createHash('sha1').update(request.body.password).digest('hex')
 
@@ -223,6 +230,7 @@ export class UserController {
 		})
 	}
 
+	@Delete('/:id')
 	public async remove(request: Request, response: Response, next: NextFunction) {
 		let userToRemove = await this.userRepository.findOne(request.params.id);
 		await this.userRepository.remove(userToRemove);

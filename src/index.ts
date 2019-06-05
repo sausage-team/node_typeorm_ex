@@ -16,22 +16,17 @@ createConnection().then(async connection => {
 
 	// register express routes from defined application routes
 
-	Object.keys(Routers).forEach((key: string) => {
-		Routers[key].gateways.forEach((route => {
-			(app as any)[route.method](`${root_api}/${key}${route.path}`,
-				(req: Request, res: Response, next: Function) => {
-					console.log(`${root_api}/${key}${route.path}`)
-					const result = (new (Routers[key].controller as any))[route.action](req, res, next);
-					if (result instanceof Promise) {
+	Routers.forEach(route => {
+		(app as any)[route.method](route.route, (req: Request, res: Response, next: Function) => {
+				const result = (new (route.controller as any))[route.action](req, res, next);
+				if (result instanceof Promise) {
 						result.then(result => result !== null && result !== undefined ? res.send(result) : undefined);
 
-					} else if (result !== null && result !== undefined) {
+				} else if (result !== null && result !== undefined) {
 						res.json(result);
-					}
 				}
-			)
-		}))
-	})
+		});
+});
 
 	// setup express app here
 	// ...

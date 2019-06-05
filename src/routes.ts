@@ -1,20 +1,20 @@
-import { UserController } from "./controller/UserController";
+import { UserController } from './controller/UserController'
 import { ClassKeys } from './decorators/decorator'
 
-type Controller = InstanceType<any>;
+type Controller = InstanceType<any>
 
 function getRouter (controllerClz: Controller): any {
     const routers = []
     const prototype = controllerClz.prototype
-    const basePath = Reflect.getOwnMetadata(ClassKeys.BasePath, controllerClz);
+    const basePath = Reflect.getOwnMetadata(ClassKeys.BasePath, controllerClz)
     const members = Object.getOwnPropertyNames(prototype)
   
     members.forEach((member) => {
-      const route = prototype[member];
-      const routeProperties = Reflect.getOwnMetadata(member, prototype);
+      const route = prototype[member]
+      const routeProperties = Reflect.getOwnMetadata(member, prototype)
   
       if (route && routeProperties) {
-          const { httpVerb, path } = routeProperties;
+          const { httpVerb, path } = routeProperties
   
           routers.push({
             method: httpVerb,
@@ -23,7 +23,7 @@ function getRouter (controllerClz: Controller): any {
             action: member
           })
       }
-    });
+    })
     return routers
 }
 

@@ -30,29 +30,29 @@ export default class Util {
   }
 
   public static getDate() {
-    const now = new Date();
-    const year = now.getFullYear().toString();
-    const old_month = now.getMonth() + 1;
-    const old_day = now.getDate();
-    const month = ((old_month < 10)?('0' + old_month):(old_month)).toString();
-    const day = ((old_day < 10)?('0' + old_day):(old_day)).toString();
-    return year + month + day;
+    const now = new Date()
+    const year = now.getFullYear().toString()
+    const old_month = now.getMonth() + 1
+    const old_day = now.getDate()
+    const month = ((old_month < 10)?('0' + old_month):(old_month)).toString()
+    const day = ((old_day < 10)?('0' + old_day):(old_day)).toString()
+    return year + month + day
   }
 
   public static getCode(str: string) {
-    let res = "";
+    let res = ''
     if(str) {
-      res = str.substring(19, 25);
+      res = str.substring(19, 25)
     }
-    return res;
+    return res
   }
 
   public static GetDomainName (str: string | string[]) {
     let url: string = str.toString()
-    if (url.indexOf("http://") > -1) {
-      url = url.replace(/http:\/\//g, '');
-    } else if (url.indexOf("https://") > -1) {
-      url = url.replace(/https:\/\//g, '');
+    if (url.indexOf('http://') > -1) {
+      url = url.replace(/http:\/\//g, '')
+    } else if (url.indexOf('https://') > -1) {
+      url = url.replace(/https:\/\//g, '')
     }
     if (url.indexOf('/')) {
       url = url.replace(/\//g, '')

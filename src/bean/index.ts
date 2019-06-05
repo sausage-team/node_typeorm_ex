@@ -14,7 +14,7 @@ const account: {
   sign_name: '杨灯',
   template_code: 'SMS_141505013',
   template_params: (code: string): string => {
-    return `{"code": ${code}}`
+    return `{'code': ${code}}`
   }
 }
 

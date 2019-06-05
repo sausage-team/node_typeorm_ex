@@ -1,33 +1,33 @@
-import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn} from 'typeorm'
 
 @Entity()
 export class User {
 
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number
 
   @Column({
     length: 10
   })
-  nickname: string;
+  nickname: string
 
   @Column({
 		length: 20
 	})
-  username: string;
+  username: string
 
   @Column({
 		length: 200
 	})
-  password: string;
+  password: string
 
 	@Column()
-  phone: string;
+  phone: string
 
   @CreateDateColumn({
     type: 'timestamp'
   })
-  createdAt: number;
+  createdAt: number
 
   @UpdateDateColumn({
     type: 'timestamp'

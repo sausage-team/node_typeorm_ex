@@ -1,17 +1,17 @@
-import {getRepository} from "typeorm";
-import {NextFunction, Request, Response} from "express";
+import {getRepository} from 'typeorm'
+import {NextFunction, Request, Response} from 'express'
 import * as redis from 'redis'
 import * as bluebird from 'bluebird'
 import {createClient} from 'redis'
-import {User} from "../entity/User";
+import {User} from '../entity/User'
 import account from '../bean'
 import { RedisHashKey, EXPIRED_TIME } from '../bean'
 import { Controller, Get, Post, Delete} from '../decorators/decorator'
 import Util from '../util'
 
-const Core = require('@alicloud/pop-core');
-const crypto = require('crypto');
-const token = require('../util/token');
+const Core = require('@alicloud/pop-core')
+const crypto = require('crypto')
+const token = require('../util/token')
 
 bluebird.promisifyAll(redis)
 
@@ -26,13 +26,12 @@ export class UserController {
 		apiVersion: account.api_version
 	})
 
-	private userRepository = getRepository(User);
+	private userRepository = getRepository(User)
 
 	@Get('/send_msg')
 	public async send_msg(request: Request, response: Response, next: NextFunction) {
 
 		const code = Math.random().toString().slice(-6)
-
 		const params: any = {
 			PhoneNumbers: request.query.phone,
 			SignName: account.sign_name,
@@ -42,19 +41,34 @@ export class UserController {
 		const request_option: any = {
 			method: 'POST'
 		}
-	
-		return Util.response_manage(
-			this.client.request('SendSms', params, request_option),
-			(result: any) => {
-				this.redisClient.setAsync(`${RedisHashKey.SMS}:${request.query.phone}`, JSON.stringify({
-						code: code,
-						expired: new Date().getTime() + EXPIRED_TIME,
-						checked: false
-					}),'EX', 100).then((ret: any) => {
-				})
-				return result
+		let response_data !: any
+
+		try {
+			response_data = await this.client.request('SendSms', params, request_option)
+		} catch (err) {
+			return {
+				status: 1,
+				msg: err.data.Message
 			}
-		)
+		}
+		if (response_data.Code === 'OK') {
+			this.redisClient.setAsync(`${RedisHashKey.SMS}:${request.query.phone}`,
+				JSON.stringify({
+					code: code,
+					expired: new Date().getTime() + EXPIRED_TIME,
+					checked: false
+				}),'EX', 100).then((ret: any) => {
+			})
+			return {
+				status: 0,
+				msg: 'OK'
+			}
+		} else {
+			return {
+				status: 1,
+				msg: 'Error'
+			}
+		}
 	}
 
 	@Get('/check_code')
@@ -84,42 +98,42 @@ export class UserController {
 							let redis_data !: any
 							try {
 								redis_data = JSON.parse(ret)
-
 								if (redis_data.expired < new Date().getTime()) {
 									response_data = {
 										status: 4,
-										msg: "验证码已失效，请重新获取"
+										msg: '验证码已失效，请重新获取'
 									}
 								} else {
 									if (redis_data.code === new_code) {
 										if (redis_data.checked) {
 											response_data = {
 												status: 2,
-												msg: "验证码已被使用，请重新获取"
+												msg: '验证码已被使用，请重新获取'
 											}
 										} else {
 											response_data = {
 												status: 0,
-												msg: "验证码正确"
+												msg: '验证码正确'
 											}
 											this.redisClient.set(`${RedisHashKey.SMS}:${request.query.phone}`, 
 												JSON.stringify({
 													...redis_data,
 													checked: true
-												}),
+												}
+											),
 											'EX', 100)
 										}
 									} else {
 										response_data = {
 											status: 1,
-											msg: "验证码错误"
+											msg: '验证码错误'
 										}
 									}
 								}
 							} catch (e) {
 								response_data = {
 									status: 3,
-									msg: "验证码未发送，请重新获取"
+									msg: '验证码未发送，请重新获取'
 								}
 							}
 							resolve(response_data)
@@ -132,7 +146,7 @@ export class UserController {
 
 	@Get('/')
 	public async all(request: Request, response: Response, next: NextFunction) {
-		return this.userRepository.find();
+		return this.userRepository.find()
 	}
 
 	@Post('/sign')
@@ -182,7 +196,7 @@ export class UserController {
 	}
 
 	public async one(request: Request, response: Response, next: NextFunction) {
-		return this.userRepository.findOne(request.params.id);
+		return this.userRepository.findOne(request.params.id)
 	}
 
 	@Post('/')
@@ -241,8 +255,8 @@ export class UserController {
 
 	@Delete('/:id')
 	public async remove(request: Request, response: Response, next: NextFunction) {
-		let userToRemove = await this.userRepository.findOne(request.params.id);
-		await this.userRepository.remove(userToRemove);
+		let userToRemove = await this.userRepository.findOne(request.params.id)
+		await this.userRepository.remove(userToRemove)
 	}
 
 }

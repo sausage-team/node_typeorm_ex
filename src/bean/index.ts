@@ -18,4 +18,8 @@ const account: {
   }
 }
 
+export const RedisHashKey = {
+  SMS: 'short_message_service'
+}
+
 export default account

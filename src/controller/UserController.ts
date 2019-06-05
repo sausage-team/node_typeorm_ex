@@ -1,7 +1,9 @@
 import {getRepository} from "typeorm";
 import {NextFunction, Request, Response} from "express";
+import {createClient} from 'redis'
 import {User} from "../entity/User";
 import account from '../bean'
+import { RedisHashKey } from '../bean'
 import Util from '../util'
 
 const Core = require('@alicloud/pop-core');
@@ -11,6 +13,7 @@ const token = require('../util/token');
 const select_code_count = {}
 
 export class UserController {
+	private redisClient: any = createClient()
 
 	public client: any = new Core({
 		accessKeyId: account.msg_id,
@@ -34,10 +37,16 @@ export class UserController {
 		const request_option: any = {
 			method: 'POST'
 		}
-
+	
 		return Util.response_manage(
 			this.client.request('SendSms', params, request_option),
 			(result: any) => {
+				this.redisClient.set(`${RedisHashKey.SMS}:${request.query.phone}`, 
+					JSON.stringify({
+						code: code,
+						expired: 0
+					}),
+				'EX', 100) // 100 seconds expired
 				select_code_count[request.query.phone] = {}
 				return result
 			}
@@ -116,6 +125,11 @@ export class UserController {
 		const username = request.body.username
 		const password = crypto.createHash('sha1').update(request.body.password).digest('hex')
 
+		this.redisClient.set(`${RedisHashKey.SMS}:${request.query.phone}`, JSON.stringify({
+			code: '123456',
+			expired: 0
+		}),'EX', 100)
+
 		const res_by_username = await this.userRepository.find({
 			username: username
 		})
@@ -163,6 +177,18 @@ export class UserController {
 
 	public async save(request: Request, response: Response, next: NextFunction) {
 		const password = crypto.createHash('sha1').update(request.body.password).digest('hex')
+
+		const phone = request.body.phone
+		this.redisClient.get(`${RedisHashKey.SMS}:${phone}`, (err: any, ret: any) => {
+			if (ret === null) {
+				console.log('empty catch')
+			} else {
+				const validata: any = JSON.parse(ret)
+				this.redisClient.del(`${RedisHashKey.SMS}:${phone}`, (err:any) => null)
+				// check your code
+				console.log(validata)
+			}
+		})
 
 		const res_by_username = await this.userRepository.find({
 			username: request.body.username

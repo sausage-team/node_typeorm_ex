@@ -125,11 +125,6 @@ export class UserController {
 		const username = request.body.username
 		const password = crypto.createHash('sha1').update(request.body.password).digest('hex')
 
-		this.redisClient.set(`${RedisHashKey.SMS}:${request.query.phone}`, JSON.stringify({
-			code: '123456',
-			expired: 0
-		}),'EX', 100)
-
 		const res_by_username = await this.userRepository.find({
 			username: username
 		})

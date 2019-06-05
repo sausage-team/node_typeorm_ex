@@ -3,14 +3,12 @@ import {NextFunction, Request, Response} from "express";
 import {createClient} from 'redis'
 import {User} from "../entity/User";
 import account from '../bean'
-import { RedisHashKey } from '../bean'
+import { RedisHashKey, EXPIRED_TIME } from '../bean'
 import Util from '../util'
 
 const Core = require('@alicloud/pop-core');
 const crypto = require('crypto');
 const token = require('../util/token');
-
-const select_code_count = {}
 
 export class UserController {
 	private redisClient: any = createClient()
@@ -44,10 +42,10 @@ export class UserController {
 				this.redisClient.set(`${RedisHashKey.SMS}:${request.query.phone}`, 
 					JSON.stringify({
 						code: code,
-						expired: 0
+						expired: new Date().getTime() + EXPIRED_TIME,
+						checked: false
 					}),
 				'EX', 100) // 100 seconds expired
-				select_code_count[request.query.phone] = {}
 				return result
 			}
 		)
@@ -67,52 +65,60 @@ export class UserController {
 			method: 'POST'
 		}
 
-		return new Promise((resolve: any, reject: any) => {
+		await new Promise((resolve: any, reject: any) => {
 			this.client.request('QuerySendDetails', params, requestOption).then((result: any) => {
 				const {Code, SmsSendDetailDTOs} = result
 				if (Code === 'OK') {
 					const res = SmsSendDetailDTOs.SmsSendDetailDTO
 					if (res && res.length > 0) {
 						const new_code = Util.getCode(res[0].Content)
-						if (code === new_code) {
-							if(new Date().getTime() - new Date(res[0].ReceiveDate).getTime() > 5 * 60 * 1000) {
-								resolve({
-									status: 4,
-									msg: "验证码已失效，请重新获取"
-								})
-							} else {
-								if(!select_code_count[phone] || !select_code_count[phone][code] ) {
-									resolve({
-										status: 0,
-										msg: "验证码正确"
-									})
-									if(!select_code_count[phone]) {
-										select_code_count[phone] = {};
-									}
-									select_code_count[phone][code] = true;
-								} else {
-									resolve({
+						let response_data !: any
+						this.redisClient.get(`${RedisHashKey.SMS}:${phone}`, (err: any, ret: any) => {
+							let redis_data !: any
+							try {
+								redis_data = JSON.parse(ret)
+
+								if (redis_data.expired < new Date().getTime()) {
+									response_data = {
 										status: 4,
-										msg: "验证码已被使用，请重新获取"
-									})
+										msg: "验证码已失效，请重新获取"
+									}
+								} else {
+									if (redis_data.code === new_code) {
+										if (redis_data.checked) {
+											response_data = {
+												status: 2,
+												msg: "验证码已被使用，请重新获取"
+											}
+										} else {
+											response_data = {
+												status: 0,
+												msg: "验证码正确"
+											}
+											this.redisClient.set(`${RedisHashKey.SMS}:${request.query.phone}`, 
+												JSON.stringify({
+													...redis_data,
+													checked: true
+												}),
+											'EX', 100)
+										}
+									} else {
+										response_data = {
+											status: 1,
+											msg: "验证码错误"
+										}
+									}
+								}
+							} catch (e) {
+								response_data = {
+									status: 3,
+									msg: "验证码未发送，请重新获取"
 								}
 							}
-						} else {
-							resolve({
-								status: 1,
-								msg: "验证码错误"
-							})
-						}
-					} else {
-						resolve({
-							status: 1,
-							msg: "验证码未发送"
+							resolve(response_data)
 						})
 					}
 				}
-
-			}, (error: any) => {
-				console.log(error)
 			})
 		})
 	}

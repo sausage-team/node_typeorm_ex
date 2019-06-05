@@ -18,6 +18,8 @@ const account: {
   }
 }
 
+export const EXPIRED_TIME = 5 * 60 * 1000
+
 export const RedisHashKey = {
   SMS: 'short_message_service'
 }

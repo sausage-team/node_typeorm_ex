@@ -24,7 +24,6 @@ function getRouter (controllerClz: Controller): any {
           })
       }
     });
-    console.log(routers)
     return routers
 }
 

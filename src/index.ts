@@ -12,8 +12,6 @@ createConnection().then(async connection => {
 	app.use(bodyParser.json())
 	app.use(require('morgan')('dev'))
 
-	const root_api = '/api'
-
 	// register express routes from defined application routes
 
 	Routers.forEach(route => {

@@ -6,7 +6,7 @@ import {createClient} from 'redis'
 import {User} from '../entity/User'
 import account from '../bean'
 import { RedisHashKey, EXPIRED_TIME } from '../bean'
-import { Controller, Get, Post, Delete} from '../decorators/decorator'
+import { Controller, Get, Post, Delete} from '../decorators'
 import Util from '../util'
 
 const Core = require('@alicloud/pop-core')
@@ -158,40 +158,40 @@ export class UserController {
 			username: username
 		})
 
-		return new Promise((resolve: any) => {
-			if (res_by_username && res_by_username.length === 1) {
-				if (password === res_by_username[0].password) {
-					const result = {
-						...res_by_username[0],
-						password: undefined
+		if (res_by_username && res_by_username.length === 1) {
+			if (password === res_by_username[0].password) {
+				const result = {
+					...res_by_username[0],
+					password: undefined
+				}
+				const access_token = token.createToken(JSON.stringify(result), 3 * 60 * 60 * 1000)
+				response.cookie('Access_token', access_token, {
+					domain: Util.GetDomainName(request.headers.origin),
+					path: '/',
+					maxAge: 3 * 60 * 60 * 1000
+				})
+
+				return {
+					status: 0,
+					msg: '登录成功',
+					data: {
+						...result,
+						access_token
 					}
-					const access_token = token.createToken(JSON.stringify(result), 10 * 60 *60)
-					response.cookie('Access_token', access_token, {
-						domain: Util.GetDomainName(request.headers.origin),
-						path: '/',
-						maxAge: 5000000
-					})
-					resolve({
-						status: 0,
-						msg: '登录成功',
-						data: {
-							...result,
-							access_token
-						}
-					})
-				} else {
-					resolve({
-						status: 1,
-						msg: '密码错误'
-					})
 				}
 			} else {
-				resolve({
+				return {
 					status: 1,
-					msg: '用户名不存在'
-				})
+					msg: '密码错误'
+				}
 			}
-		})
+		} else {
+			return {
+				status: 1,
+				msg: '用户名不存在'
+			}
+		}
+		
 
 	}
 
@@ -210,8 +210,6 @@ export class UserController {
 			} else {
 				const validata: any = JSON.parse(ret)
 				this.redisClient.del(`${RedisHashKey.SMS}:${phone}`, (err:any) => null)
-				// check your code
-				console.log(validata)
 			}
 		})
 

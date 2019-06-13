@@ -1,4 +1,10 @@
+const _ = require('loadsh')
+const fs = require('fs')
+
 export default class Util {
+
+  public static word: string[] = []
+
   public static response_manage (
     promise: Promise<any>,
     success: Function,
@@ -62,5 +68,13 @@ export default class Util {
       url = tmp[0]
     }
     return url
+  }
+
+  public static getDicWord (): string[] {
+    if (!this.word || this.word.length === 0) {
+      const data: any = fs.readFileSync(`src/lib/simple-cn`,'utf-8')
+      this.word = _.uniq(data.split('\n'))
+    }
+    return this.word
   }
 }

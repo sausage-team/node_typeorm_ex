@@ -22,6 +22,7 @@
       "finalhandler": "^1.1.2",
       "fs": "^0.0.1-security",
       "http-errors": "~1.6.3",
+      "jsonwebtoken": "^8.5.1",
       "loadsh": "^0.0.4",
       "morgan": "^1.9.1",
       "mysql": "^2.14.1",

@@ -3,6 +3,7 @@ const Progress = require('progress')
 Progress.prototype.reset = function () {
   this.terminate()
   this.curr = 0
+  this.complete = false
 }
 
 function ProgressBar (description, length) {

@@ -129,7 +129,7 @@ jobs.process('role_info', async (job, done) => {
 
 export const newJob = (name, options) => {
   const job = jobs.create(name, options)
-  // const pb = new ProgressBar(`获取${name}进度`, 50)
+  // const pb = ProgressBar(`获取${name}进度`, 50)
   // let count = 0
   job
   .on('progress', function(progress, data){

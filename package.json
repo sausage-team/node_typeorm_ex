@@ -22,12 +22,9 @@
       "finalhandler": "^1.1.2",
       "fs": "^0.0.1-security",
       "http-errors": "~1.6.3",
-<<<<<<< HEAD
       "jquery": "^3.4.1",
       "kue": "^0.11.6",
-=======
       "jsonwebtoken": "^8.5.1",
->>>>>>> 711f942ec57ba0c9ffb7c791603cdaa33417d62d
       "loadsh": "^0.0.4",
       "morgan": "^1.9.1",
       "mysql": "^2.14.1",

@@ -38,7 +38,7 @@ export class TxController {
 
   @Get('/async_role_info')
   public async async_role_info (req: Request, response: Response, next: NextFunction) {
-    // const pb = new ProgressBar('获取hero进度', 50)
+    // const pb = ProgressBar('获取hero进度', 50)
     newJob('hero_info', {
       role_offset: 0
     })

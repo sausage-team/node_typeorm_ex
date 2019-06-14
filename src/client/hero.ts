@@ -119,13 +119,28 @@ const pup = async (done) => {
     done && done()
 }
 
-// jobs.process('hero_info', async (job, done) => {
-//   pup(done)
-// })
+jobs.active((err, ids) => {
+  ids.forEach(( id ) => {
+    kue.Job.get(id, ( err, job ) => {
+      job.remove();
+    });
+  });
+  // jobs.process('hero_info', async (job, done) => {
+  //   pup(done)
+  // })
 
-jobs.process('role_info', async (job, done) => {
-  await pup_role(job, done)
+  jobs.process('role_info', async (job, done) => {
+    await pup_role(job, done)
+  })
 })
+
+process.on('SIGINT', ( sig ) => {
+  jobs.shutdown(5000, (err) => {
+    console.log( 'Kue shutdown: ', err||'' );
+    process.exit( 0 );
+  });
+});
+
 
 export const newJob = (name, options) => {
   const job = jobs.create(name, options)
@@ -153,7 +168,7 @@ export const newJob = (name, options) => {
     .on('failed', (e) => {
     })
 
-  job.attempts(5).ttl(10000).save()
+  job.attempts(5).ttl(10000).removeOnComplete( true ).save()
 }
 
 export const pup_role = async (job, done) => {

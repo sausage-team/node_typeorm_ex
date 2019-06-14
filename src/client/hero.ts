@@ -182,8 +182,6 @@ export const pup_role = async (job, done) => {
         if (resp.result) {
           if (resp.result.roles.length > 0) {
             repo.txRoleRepository.save(resp.result.roles)
-          } else {
-            return done('empty')
           }
         }
       }

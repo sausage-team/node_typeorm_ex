@@ -85,6 +85,10 @@ export default class Util {
     }
   }
 
+  public static html_etc (html: string): any {
+    return html.replace(/\/body/g, '').split('<body>')[1].replace(/\/script/g, 'script').split('<script')[0]
+  }
+
   public static hero_data_etc (): any {
     const hero_info: any = {}
     try {

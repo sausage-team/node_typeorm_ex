@@ -41,7 +41,8 @@ export class TxController {
     // const pb = ProgressBar('获取hero进度', 50)
     newJob('hero_info', {
       role_offset: 0,
-      role_child_offset: 1
+      role_child_offset: 1,
+      offset: 0
     })
     return {
       msg: 'ok',

@@ -123,7 +123,7 @@ const pup = async (done) => {
 //   pup(done)
 // })
 
-jobs.process('role_info', 5, async (job, done) => {
+jobs.process('role_info', async (job, done) => {
   await pup_role(job, done)
 })
 
@@ -136,16 +136,21 @@ export const newJob = (name, options) => {
   .on('complete', () => {
     if (name === 'role_info') {
       if(job.data.role_offset < wordList.length) {
-        newJob(name, {
-          role_offset: job.data.role_offset + 1
-        })
+        const option: any = {}
+        if (job.data.role_child_offset < 21) {
+          option.role_child_offset = job.data.role_child_offset + 1
+          option.role_offset = job.data.role_offset
+        } else {
+          option.role_child_offset = 1
+          option.role_offset = job.data.role_offset + 1
+        }
+        newJob(name, option)
       }
     } else {
       newJob(name, options)
     }
   })
     .on('failed', (e) => {
-      // console.log(e)
     })
 
   job.attempts(5).ttl(10000).save()
@@ -157,38 +162,35 @@ export const pup_role = async (job, done) => {
     host: 'bang.tx3.163.com',
     url: 'http://bang.tx3.163.com/bang/search4role',
     method: 'GET',
+    qs: {
+      name: wordList[job.data.role_offset],
+      page: job.data.role_child_offset
+    },
     "headers": {
       'Host': 'bang.tx3.163.com',
       'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
     }
   }
-  for (let i = 1; i < 22; i++) {
-    options.qs = {
-      name: wordList[job.data.role_offset],
-      page: i
-    }
-    await request(options, async (err: any, res: any, body: any) => {
-      if (res && res.statusCode === 200) {
-        let resp: any = null
-        try {
-          resp = JSON.parse(res.body)
-        } catch (e) {
-        }
-        if (resp && resp.status === 0) {
-          if (resp.result) {
-            if (resp.result.roles.length > 0) {
-              repo.txRoleRepository.save(resp.result.roles)
-            }
+  await request(options, async (err: any, res: any, body: any) => {
+    if (res && res.statusCode === 200) {
+      let resp: any = null
+      try {
+        resp = JSON.parse(res.body)
+      } catch (e) {
+      }
+      if (resp && resp.status === 0) {
+        if (resp.result) {
+          if (resp.result.roles.length > 0) {
+            repo.txRoleRepository.save(resp.result.roles)
+          } else {
+            return done('empty')
           }
         }
       }
-      if (err) {
-        console.log(err)
-        return done(new Error(err))
-      }
-    })
-    
-  }
+    }
+    if (err) {
+      return done(new Error(err))
+    }
+  })
   done && done()
-
 }

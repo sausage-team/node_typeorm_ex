@@ -157,12 +157,11 @@ export const pup_role = async (job, done) => {
   const repo = new repoUtil()
   const options: any = {
     host: 'bang.tx3.163.com',
-    prot: null,
-    uri: 'http://bang.tx3.163.com/bang/search4role',
+    url: 'http://bang.tx3.163.com/bang/search4role',
     method: 'GET',
     "headers": {
-      "cache-control": "no-cache",
-      "postman-token": "751845fd-3f18-8958-1b03-9e77befef88d"
+      'Host': 'bang.tx3.163.com',
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
     }
   }
   for (let i = 1; i < 22; i++) {
@@ -171,7 +170,7 @@ export const pup_role = async (job, done) => {
       page: i
     }
     await request(options, async (err: any, res: any, body: any) => {
-      if (res && res.body) {
+      if (res && res.statusCode === 200) {
         let resp: any = null
         try {
           resp = JSON.parse(res.body)
@@ -187,6 +186,7 @@ export const pup_role = async (job, done) => {
       }
       if (err) {
         console.log(err)
+        return done(new Error(err))
       }
     })
   }

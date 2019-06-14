@@ -7,7 +7,6 @@ import { getRepository } from "typeorm"
 const ProgressBar = require('../util/process_log')
 const request = require('request')
 const retry = require('async-retry')
-
 @Controller('/api/tx')
 export class TxController {
   private wordList: string[] = Util.getDicWord()
@@ -15,26 +14,23 @@ export class TxController {
 
   @Post('/async_role')
   public async async_role (req: Request, response: Response, next: NextFunction) {
-    const pb = new ProgressBar('获取id进度', 50)
+    const pb = new ProgressBar('获取id进度', this.wordList.length)
     let count = 0
     const options = {
-      host: 'bang.tx3.163.com',
-      uri: '',
+      url: '',
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Host': 'bang.tx3.163.com',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
       }
     }
 
     this.wordList.forEach(async (item: string) => {
-      options.uri = 'http://bang.tx3.163.com/bang/search4name?name=' + encodeURIComponent(item)
+      options.url = 'http://bang.tx3.163.com/bang/search4name?name=' + encodeURIComponent(item)
       await retry(async (bail: any) => {
         const fetch: Promise<any> = await request(options, async (err: any, res: any, body: any) => {
-          pb.render({
-            completed: count++,
-            total: this.wordList.length
-          })
-          if (res && res.body) {
+          if (!err && res.statusCode === 200) {
             const resp: any = res.body
             if (resp && resp.status === 0) {
               if (resp.result.length > 0) {
@@ -44,6 +40,7 @@ export class TxController {
                     name: n[0]
                   })
                 })
+                pb.tick()
               }
             }
           }

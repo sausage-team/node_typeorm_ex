@@ -1,15 +1,16 @@
 import { Controller, Post, Get } from "../decorators"
 import Util from '../util'
 import {NextFunction, Request, Response} from 'express'
+
 import { newJob, pup_role } from '../client/hero'
 
 @Controller('/api/tx')
 export class TxController {
   private wordList: string[] = Util.getDicWord()
 
-
   @Get('/async_role')
   public async async_role (req: Request, response: Response, next: NextFunction) {
+
     newJob('role_info', {
       role_offset: 0
     })
@@ -27,8 +28,8 @@ export class TxController {
       "port": null,
       "path": "/bang/role/28_31956",
       "headers": {
-        "cache-control": "no-cache",
-        "postman-token": "5a49ca38-ad5e-e010-8800-3589e9301230"
+        'Host': 'bang.tx3.163.com',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
       }
     }
 

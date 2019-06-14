@@ -123,7 +123,7 @@ const pup = async (done) => {
 //   pup(done)
 // })
 
-jobs.process('role_info', async (job, done) => {
+jobs.process('role_info', 5, async (job, done) => {
   await pup_role(job, done)
 })
 
@@ -170,25 +170,31 @@ export const pup_role = async (job, done) => {
       name: wordList[job.data.role_offset],
       page: i
     }
-    await request(options, async (err: any, res: any, body: any) => {
-      if (res && res.body) {
-        let resp: any = null
-        try {
-          resp = JSON.parse(res.body)
-        } catch (e) {
-        }
-        if (resp && resp.status === 0) {
-          if (resp.result) {
-            if (resp.result.roles.length > 0) {
-              repo.txRoleRepository.save(resp.result.roles)
+    await retry(async bail => {
+      await request(options, async (err: any, res: any, body: any) => {
+        if (res && res.body) {
+          let resp: any = null
+          try {
+            resp = JSON.parse(res.body)
+          } catch (e) {
+          }
+          if (resp && resp.status === 0) {
+            if (resp.result) {
+              if (resp.result.roles.length > 0) {
+                await repo.txRoleRepository.save(resp.result.roles)
+              }
             }
           }
         }
-      }
-      if (err) {
-        console.log(err)
-      }
+        if (err) {
+          bail()
+          return
+        }
+      })
+    }, {
+      retries: 5
     })
+    
   }
   done && done()
 

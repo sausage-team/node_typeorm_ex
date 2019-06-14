@@ -1,47 +1,27 @@
-const crypto=require('crypto')
+const crypto = require('crypto')
+const jwt = require('jsonwebtoken')
 
+const secret = 'sausage-team.com'
 const token = {
   createToken: (obj, timeout) => {
     const obj2 = {
-      data: obj,//payload
-      created: parseInt('' + Date.now() / 1000),//token生成的时间的，单位秒
-      exp: parseInt(timeout) || 10//token有效期
+      data: obj,
+      created: parseInt(`${Date.now() / 1000}`),
+      exp: parseInt(timeout) || 10
     }
-    const base64Str = Buffer.from(JSON.stringify(obj2), 'utf8').toString('base64')
-    const secret = 'hel.h-five.com'
-    const hash = crypto.createHmac('sha256',secret)
-    hash.update(base64Str)
-    const signature = hash.digest('base64')
-
-    return  base64Str + '.' + signature
+    const token = jwt.sign(obj2, secret, { algorithm: 'HS256' })
+    return  token
   },
 
   decodeToken: (token) => {
     if(!token) {
       return false
     }
-    const decArr = token.split('.')
-    if(decArr.length<2) {
-      //token不合法
-      return false
-    }
-    let payload = {}
-
     try {
-      payload = JSON.parse(Buffer.from(decArr[0], 'base64').toString('utf8'))
-    } catch(e) {
+      var decoded = jwt.verify(token, secret, { algorithm: 'HS256' });
+      return decoded
+    } catch(err) {
       return false
-    }
-
-    const secret = 'hel.h-five.com'
-    const hash = crypto.createHmac('sha256',secret)
-    hash.update(decArr[0])
-    const checkSignature = hash.digest('base64')
-
-    return {
-      payload: payload,
-      signature: decArr[1],
-      checkSignature: checkSignature
     }
   },
   checkToken: (token) => {

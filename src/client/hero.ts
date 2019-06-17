@@ -46,6 +46,12 @@ jobs.active((err, ids) => {
   })
 })
 
+jobs.on('job complete', (id) => {
+  kue.Job.get(id, (err, job) => {
+    job.remove()
+  })
+})
+
 export const newJob = (name, options) => {
   const job = jobs.create(name, options)
   job

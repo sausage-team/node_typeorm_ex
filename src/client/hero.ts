@@ -46,11 +46,11 @@ jobs.active((err, ids) => {
   })
 })
 
-jobs.on('job complete', (id) => {
-  kue.Job.get(id, (err, job) => {
-    job.remove()
-  })
-})
+// jobs.on('job complete', (id) => {
+//   kue.Job.get(id, (err, job) => {
+//     job.remove()
+//   })
+// })
 
 export const newJob = (name, options) => {
   const job = jobs.create(name, options)
@@ -83,7 +83,7 @@ export const newJob = (name, options) => {
       console.log(e)
     })
 
-  job.attempts(5).ttl(10000).delay(5000).save()
+  job.attempts(5).ttl(10000).delay(5000).removeOnComplete(true).save()
 }
 
 export const pup_role = async (job, done) => {

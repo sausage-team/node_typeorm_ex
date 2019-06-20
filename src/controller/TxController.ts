@@ -54,42 +54,24 @@ export class TxController {
   @Transaction()
   public async count(@TransactionRepository(TxRole) txRepo: Repository<TxRole>) {
     let data: any = {}
-    const qb = txRepo.createQueryBuilder()
-    // data.all_count = await qb.select('COUNT(*)')
-    data.all_count = await txRepo.count()
-    data.yh_count = await txRepo.count({
-      school: '幽篁国'
-    })
-    data.hh_count = await txRepo.count({
-      school: '荒火教'
-    })
-    data.tx_count = await txRepo.count({
-      school: '太虚观'
-    })
-    data.tj_count = await txRepo.count({
-      school: '天机营'
-    })
-    data.yl_count = await txRepo.count({
-      school: '云麓仙居'
-    })
-    data.ym_count = await txRepo.count({
-      school: '翎羽山庄'
-    })
-    data.bx_count = await txRepo.count({
-      school: '冰心堂'
-    })
-    data.wl_count = await txRepo.count({
-      school: '魍魉'
-    })
-    data.yj_count = await txRepo.count({
-      school: '弈剑听雨阁'
-    })
-    data.lw_count = await txRepo.count({
-      school: '龙巫宫'
-    })
-    data.gm_count = await txRepo.count({
-      school: '鬼墨'
-    })
+    const queryBuilder = txRepo.createQueryBuilder()
+    data.all_count = await queryBuilder.getCount()
+    // data.yh_count = await queryBuilder.where('school = :name', {name: '幽篁国'}).getCount()
+    // data.hh_count = await queryBuilder.where('school = :name', {name: '荒火教'}).getCount()
+    // data.tx_count = await queryBuilder.where('school = :name', {name: '太虚观'}).getCount()
+    // data.tj_count = await queryBuilder.where('school = :name', {name: '天机营'}).getCount()
+    // data.yl_count = await queryBuilder.where('school = :name', {name: '云麓仙居'}).getCount()
+    // data.ym_count = await queryBuilder.where('school = :name', {name: '翎羽山庄'}).getCount()
+    // data.bx_count = await queryBuilder.where('school = :name', {name: '冰心堂'}).getCount()
+    // data.wl_count = await queryBuilder.where('school = :name', {name: '魍魉'}).getCount()
+    // data.yj_count = await queryBuilder.where('school = :name', {name: '弈剑听雨阁'}).getCount()
+    // data.lw_count = await queryBuilder.where('school = :name', {name: '龙巫宫'}).getCount()
+    // data.gm_count = await queryBuilder.where('school = :name', {name: '鬼墨'}).getCount()
+    data.detail_count = await queryBuilder
+      .select('school, COUNT(school) as cnt')
+      .where('school IS NOT NULL')
+      .groupBy('school')
+      .getRawMany()
 
     return data
   }

@@ -14,7 +14,7 @@ const request = require('request')
 const retry = require('async-retry')
 const _ = require('loadsh')
 
-class repoUtil {
+export class repoUtil {
   public heroRepository = getRepository(Hero)
   public txRoleRepository = getRepository(TxRole)
   public roleCount: number = 0
@@ -83,7 +83,7 @@ export const newJob = (name, options) => {
       console.log(e)
     })
 
-  job.attempts(5).ttl(10000).save()
+  job.attempts(5).ttl(10000).delay(5000).save()
 }
 
 export const pup_role = async (job, done) => {
@@ -111,7 +111,9 @@ export const pup_role = async (job, done) => {
       if (resp && resp.status === 0) {
         if (resp.result) {
           if (resp.result.roles.length > 0) {
-            await repo.txRoleRepository.save(resp.result.roles)
+            await repo.txRoleRepository.save(resp.result.roles).catch((e) => {
+              return done(new Error(err))
+            })
           }
         }
       }

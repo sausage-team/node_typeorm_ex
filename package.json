@@ -4,7 +4,7 @@
    "private": true,
    "scripts": {
       "start": "ts-node src/index.ts",
-	  "pm": "pm2 start src/index.ts"
+	   "pm": "pm2 start src/index.ts"
    },
    "dependencies": {
       "@alicloud/pop-core": "^1.7.7",
